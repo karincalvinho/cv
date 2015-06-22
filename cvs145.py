@@ -112,8 +112,8 @@ linear_part = numpy.hstack((
   numpy.vstack(y[best_i:best_j])
   ))
 column_names = [
+    'log j (log10 mV/cm2)',
     'Overpotential (V)',
-    'log j (decade)',
 ]
 output_file = path + '/linear-' + filename
 numpy.savetxt(output_file, data, delimiter=',', header=','.join(column_names),
