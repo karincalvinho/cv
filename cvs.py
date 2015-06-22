@@ -1,6 +1,7 @@
 from scipy import stats
 import csv
 import math
+import matplotlib.pyplot as plt
 import os
 import sys
 
@@ -13,6 +14,7 @@ if len(sys.argv) < 2:
 input_file = sys.argv[1]
 path, filename = os.path.split(input_file)
 output_file = path + '/out-' + filename
+chart_file = path + '/chart-' + filename + '.png'
 
 # create data matrix
 data = []
@@ -153,3 +155,30 @@ with open(output_file, 'w') as csvfile:
         ])
     for row in data[:inflection+1]:
         writer.writerow(row)
+
+# generate charts
+plt.rc('lines', linewidth=2, markersize=4)
+
+# plot linear regression
+line_y = []
+for val in x:
+    line_y.append(slope * val + intercept)
+plt.plot(x, line_y, '-', color="blue")
+
+# highlight part of the line between best_i and best_j
+line_y = []
+for val in x[best_i:best_j]:
+    line_y.append(slope * val + intercept)
+plt.plot(x[best_i:best_j], line_y, '-', color="red")
+
+# plot actual data
+plt.plot(x, y, '.k')
+
+# chart options
+plt.grid(True)
+plt.xlabel('log j (decade)')
+plt.ylabel('Overpotential (V)')
+
+# save chart to a file
+print ">> Saving chart to %s" % chart_file
+plt.savefig(chart_file)
