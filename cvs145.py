@@ -22,7 +22,7 @@ v = data[:,:1]
 current = data[:,1:2]
 
 # convert Potential vs Hg/Hg0 into Potential vs NHE
-v_nhe = v + 0.140 + .0592*14
+v_nhe = v + 0.145 + .0592*14
 data = numpy.append(data, v_nhe, 1)
 
 # find cycle endpoint
