@@ -4,95 +4,70 @@ import math
 import matplotlib.pyplot as plt
 import os
 import sys
+import numpy
 
 # reading script's input from command-line
 if len(sys.argv) < 2:
     print "Usage: %s <input file>" % sys.argv[0]
     sys.exit()
 
-# input/output filenames
+# extract filename and path from input_file
 input_file = sys.argv[1]
 path, filename = os.path.split(input_file)
-output_file = path + '/out-' + filename
-chart_file = path + '/chart-' + filename + '.png'
-
-# create data matrix
-data = []
 
 # read input file
-print ">> Reading input from %s" % input_file
-with open(input_file, 'rb') as csvfile:
-    rows = csv.reader(csvfile)
-    i = 0
-    for row in rows:
-        i = i + 1
-        if i <= 16:
-            continue
-        row_float = []
-        for x in row:
-            row_float.append(float(x))
-        data.append(row_float)
+data = numpy.genfromtxt(input_file, delimiter=',', skip_header=16)
+data = numpy.vstack((data, data[0]))
+v = data[:,:1]
+current = data[:,1:2]
 
 # convert Potential vs Hg/Hg0 into Potential vs NHE
-i = 0
-for row in data:
-    v = row[0]
-    v_nhe = v + 0.140 + .0592*14
-    data[i].append(v_nhe)
-    i = i + 1
+v_nhe = v + 0.140 + .0592*14
+data = numpy.append(data, v_nhe, 1)
 
-# find inflection point for Potential vs Hg/Hg0
-print ">> Finding inflection point"
-inflection = None
+# find cycle endpoint
+endpoint = None
 v_prev = None
 i = 0
-for (v, _, _) in data:
-    if v < v_prev:
-        inflection = i - 1
+for v_now in v[:,0]:
+    if v_now < v_prev:
+        endpoint = i - 1
         break
-    v_prev = v
+    v_prev = v_now
     i = i + 1
-assert inflection != None
+assert endpoint != None
 # FIXME: take care of the case that there are multiple cycles in the data
-print "   inflection point value is %f" % data[inflection][0]
+
+# trimming data, excluding rows after endpoint from output
+data = data[:endpoint+1, :]
 
 # calculate current density
-i = 0
-for row in data[:inflection+1]:
-    current = row[1]
-    reverse_current = data[-i-1][1]
-    data[i].append((current + reverse_current) * 500/ .196)
-    i = i + 1
-
-# calculate overpotential
-i = 0
-for row in data[:inflection+1]:
-    v_nhe = row[2]
-    o = v_nhe - 1.23
-    data[i].append(o)
-    i = i + 1
+forward_current = current[:endpoint+1]
+reverse_current = numpy.flipud(current[endpoint:])
+current_density = (forward_current + reverse_current) * 1000 / (2 * .196)
+data = numpy.append(data, current_density, 1)
 
 # calculate logarithm of current density
-i = 0
-for row in data[:inflection+1]:
-    current_density = row[3]
-    log_cd = math.log10(2 * math.fabs(current_density))
-    data[i].append(log_cd)
-    i = i + 1
+log10_current_density = numpy.log10(2 * numpy.fabs(current_density))
+data = numpy.append(data, log10_current_density, 1)
 
-# build x/y vectors for linear regression
-x = []
-y = []
-for row in data[:inflection+1]:
-    o = row[4]
-    log_cd = row[5]
-    if o < 0 or log_cd < 0:
-        continue
-    x.append(log_cd)
-    y.append(o)
+# calculate overpotential
+overpotential = v_nhe[:endpoint+1] - 1.23
+data = numpy.append(data, overpotential, 1)
+
+# build x/y vectors for linear regression (extracts first quadrant
+# from log10_current_density vs overpotential)
+mask = numpy.logical_and(log10_current_density > 0, overpotential > 0)
+x = log10_current_density[mask]
+y = overpotential[mask]
+
+
+
+################################################################################
+# Linear regression of the curve
+#
 
 # find best linear regression of the curve
-print ">> Finding best linear regression of the curve"
 best_r_value = 0
 best_i = None
 best_j = None
@@ -112,52 +87,86 @@ for i in range(0, len(x)):
 # prints the best linear regression
 slope, intercept, r_value, p_value, std_err = stats.linregress(
     x[best_i:best_j], y[best_i:best_j])
-print "   log j between [%f, %f]" % (x[best_i], x[best_j-1])
-print "   Slope: %f" % slope
-print "   Tafel slope (mV/dec): %f" % (1000 * slope)
-print "   Intercept: %f" % intercept
-print "   R-value: %f" % r_value
-print "   Standard error: %f" % std_err
 
-# calculate onset potential
+if best_i == None or best_j == None:
+    print "%s,error" % input_file
+    sys.exit()
+
+tafel_slope = 1000 * slope
+
 onset_potential = None
-for row in data[:inflection+1]:
-    current_density = row[3]
-    if current_density < -.1:
-        v_nhe = row[2]
-        onset_potential = v_nhe
+for row in data:
+    current_density_value = row[3]
+    if current_density_value < -.1:
+        v_nhe_value = row[2]
+        onset_potential = v_nhe_value
         break
 
-print ">> Electrochemical activity"
-print "   Overpotential at 10mA/cm^2 (V): %f" % (slope + intercept)
-print "   Potential at 10mA/cm^2 (V): %f" % (slope + intercept + 1.23)
-print "   Onset potential (V): %f" % onset_potential
-print "   Exchange current density (mA/cm2): %.3e" % math.pow(10,(-intercept/slope))
+potential_at_10 = slope + intercept + 1.23
 
-# append columns for linear part of tafel plot
-for i in range(best_i, best_j):
-    data[i].append(x[i])
-    data[i].append(y[i])
+exchange_current_density = math.pow(10,(-intercept/slope))
 
-# write data into output file
-print ">> Writing output to %s" % output_file
-with open(output_file, 'w') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow([
-        'V vs Hg/HgO (V)',
-        'i (A)',
-        'V vs NHE (V)',
-        'j (mA/cm^2)',
-        'Overpotential (V)',
-        'log j (decade)',
-        'Linear log j (decade)',
-        'Linear Overpotential (V)',
-        ])
-    for row in data[:inflection+1]:
-        writer.writerow(row)
+# write linear part of tafel plot into a separate file
+linear_part = numpy.hstack((
+  numpy.vstack(x[best_i:best_j]),
+  numpy.vstack(y[best_i:best_j])
+  ))
+column_names = [
+    'Overpotential (V)',
+    'log j (decade)',
+]
+output_file = path + '/linear-' + filename
+numpy.savetxt(output_file, data, delimiter=',', header=','.join(column_names),
+    comments='')
 
-# generate charts
+
+
+################################################################################
+# Print data summary
+#
+
+data_summary = (
+  input_file,
+  tafel_slope,
+  onset_potential,
+  potential_at_10,
+  exchange_current_density,
+  intercept,
+  r_value,
+)
+
+print "%s,%.3e,%.3e,%.3e,%.3e,%.3e,%.3e" % data_summary
+
+
+
+################################################################################
+# Print output file
+#
+
+column_names = [
+    'V vs Hg/HgO (V)',
+    'i (A)',
+    'V vs NHE (V)',
+    'j (mA/cm^2)',
+    'Overpotential (V)',
+    'log j (decade)',
+]
+output_file = path + '/out-' + filename
+numpy.savetxt(output_file, data, delimiter=',', header=','.join(column_names),
+    comments='')
+
+
+
+################################################################################
+# Generating Tafel plot
+#
+
+# chart options
+plt.clf()
 plt.rc('lines', linewidth=2, markersize=4)
+plt.grid(True)
+plt.xlabel('log j (decade)')
+plt.ylabel('Overpotential (V)')
 
 # plot linear regression
 line_y = []
@@ -174,11 +183,25 @@ plt.plot(x[best_i:best_j], line_y, '-', color="red")
 # plot actual data
 plt.plot(x, y, '.k')
 
-# chart options
-plt.grid(True)
-plt.xlabel('log j (decade)')
-plt.ylabel('Overpotential (V)')
+# save Tafel plot to a file
+plt.savefig(path + '/tafel-' + filename + '.png')
 
-# save chart to a file
-print ">> Saving chart to %s" % chart_file
-plt.savefig(chart_file)
+
+
+################################################################################
+# Generating polarization curve
+#
+
+# chart options
+plt.clf()
+plt.rc('lines', linewidth=2, markersize=4)
+plt.grid(True)
+plt.xlabel('V vs NHE (V)')
+plt.ylabel('Current density (mA/cm2)')
+plt.gca().invert_yaxis()
+
+# actually plot the data
+plt.plot(v_nhe[:701], current_density[:701])
+
+# save plot to a file
+plt.savefig(path + '/pc-' + filename + '.png')
