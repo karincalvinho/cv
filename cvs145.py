@@ -116,7 +116,7 @@ column_names = [
     'Overpotential (V)',
 ]
 output_file = path + '/linear-' + filename
-numpy.savetxt(output_file, data, delimiter=',', header=','.join(column_names),
+numpy.savetxt(output_file, linear_part, delimiter=',', header=','.join(column_names),
     comments='')
 
 
