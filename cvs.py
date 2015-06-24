@@ -206,6 +206,5 @@ def process_file(input_file):
 if len(sys.argv) < 2:
     print "Usage: %s <input file>" % sys.argv[0]
     sys.exit()
-input_file = sys.argv[1]
-
-process_file(input_file)
+for input_file in sys.argv[1:]:
+    process_file(input_file)
