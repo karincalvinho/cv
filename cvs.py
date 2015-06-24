@@ -7,8 +7,8 @@ import sys
 import numpy
 
 # process input file
-def process_file(input_file):
-    # extract filename and path from input_file
+def process_file(input_file, sample_id):
+    # extract filename and path from input_files
     path, filename = os.path.split(os.path.abspath(input_file))
 
     # read input file
@@ -185,8 +185,8 @@ def process_file(input_file):
     # create multiple line tafel plot
     plt.figure('tafel_all')
     plt.plot(x, y, '.', color="black")
-    ax.plot(x, line_y, '-')
-    plt.plot(x[best_i:best_j], bestline_y, '-', color="gray")
+    ax.plot(x, line_y, '-', label=sample_id)
+    #plt.plot(x[best_i:best_j], bestline_y, '-', color="gray")
 
     ################################################################################
     # Generating polarization curve
@@ -208,22 +208,34 @@ def process_file(input_file):
 
 # reading script's input from command-line
 if len(sys.argv) < 2:
-    print "Usage: %s <input file>" % sys.argv[0]
+    print "Usage: %s <input file>:<sample_id>" % sys.argv[0]
     sys.exit()
 
 # chart options
 plt.figure('tafel_all')
 ax = plt.gca()
-ax.set_color_cycle(['r','b','g'])
+ax.set_color_cycle([
+#4D4D4D #(gray)
+'#5DA5DA', #(blue)
+'#FAA43A', #(orange)
+'#60BD68', #(green)
+'#F17CB0', #(pink)
+'#B2912F', #(brown)
+'#B276B2', #(purple)
+#DECF3F #(yellow)
+'#F15854', #(red)
+])
 plt.rc('lines', linewidth=2, markersize=4)
 plt.grid(False)
 plt.xlabel('log j (decade)')
 plt.ylabel('Overpotential (V)')
 
 # treat IV data
-for input_file in sys.argv[1:]:
-    process_file(input_file)
+for argument in sys.argv[1:]:
+    (input_file, sample_id) = argument.split(':')
+    process_file(input_file, sample_id)
 
 # save Tafel plot to a file
 plt.figure('tafel_all')
+plt.legend()
 plt.savefig('tafel_all.png')
