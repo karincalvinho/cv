@@ -160,7 +160,7 @@ def process_file(input_file):
     # chart options
     plt.figure()
     plt.rc('lines', linewidth=2, markersize=4)
-    plt.grid(True)
+    plt.grid(False)
     plt.xlabel('log j (decade)')
     plt.ylabel('Overpotential (V)')
 
@@ -182,10 +182,10 @@ def process_file(input_file):
     # save Tafel plot to a file
     plt.savefig(path + '/tafel-' + filename + '.png')
 
-    # plot actual data
-    plt.figure('tafel_todos')
+    # create multiple line tafel plot
+    plt.figure('tafel_all')
     plt.plot(x, y, '.', color="black")
-    plt.plot(x, line_y, '-', color="green")
+    ax.plot(x, line_y, '-')
     plt.plot(x[best_i:best_j], bestline_y, '-', color="gray")
 
     ################################################################################
@@ -195,7 +195,7 @@ def process_file(input_file):
     # chart options
     plt.figure()
     plt.rc('lines', linewidth=2, markersize=4)
-    plt.grid(True)
+    plt.grid(False)
     plt.xlabel('V vs NHE (V)')
     plt.ylabel('Current density (mA/cm2)')
     plt.gca().invert_yaxis()
@@ -212,16 +212,18 @@ if len(sys.argv) < 2:
     sys.exit()
 
 # chart options
-plt.figure('tafel_todos')
+plt.figure('tafel_all')
+ax = plt.gca()
+ax.set_color_cycle(['r','b','g'])
 plt.rc('lines', linewidth=2, markersize=4)
-plt.grid(True)
+plt.grid(False)
 plt.xlabel('log j (decade)')
 plt.ylabel('Overpotential (V)')
 
-#
+# treat IV data
 for input_file in sys.argv[1:]:
     process_file(input_file)
 
 # save Tafel plot to a file
-plt.figure('tafel_todos')
-plt.savefig('tafel_todos.png')
+plt.figure('tafel_all')
+plt.savefig('tafel_all.png')
