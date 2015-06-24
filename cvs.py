@@ -158,7 +158,7 @@ def process_file(input_file):
     #
 
     # chart options
-    plt.clf()
+    plt.figure()
     plt.rc('lines', linewidth=2, markersize=4)
     plt.grid(True)
     plt.xlabel('log j (decade)')
@@ -171,25 +171,29 @@ def process_file(input_file):
     plt.plot(x, line_y, '-', color="blue")
 
     # highlight part of the line between best_i and best_j
-    line_y = []
+    bestline_y = []
     for val in x[best_i:best_j]:
-        line_y.append(slope * val + intercept)
-    plt.plot(x[best_i:best_j], line_y, '-', color="red")
+        bestline_y.append(slope * val + intercept)
+    plt.plot(x[best_i:best_j], bestline_y, '-', color="red")
 
     # plot actual data
-    plt.plot(x, y, '.k')
+    plt.plot(x, y, '.', color="black")
 
     # save Tafel plot to a file
     plt.savefig(path + '/tafel-' + filename + '.png')
 
-
+    # plot actual data
+    plt.figure('tafel_todos')
+    plt.plot(x, y, '.', color="black")
+    plt.plot(x, line_y, '-', color="green")
+    plt.plot(x[best_i:best_j], bestline_y, '-', color="gray")
 
     ################################################################################
     # Generating polarization curve
     #
 
     # chart options
-    plt.clf()
+    plt.figure()
     plt.rc('lines', linewidth=2, markersize=4)
     plt.grid(True)
     plt.xlabel('V vs NHE (V)')
@@ -206,5 +210,18 @@ def process_file(input_file):
 if len(sys.argv) < 2:
     print "Usage: %s <input file>" % sys.argv[0]
     sys.exit()
+
+# chart options
+plt.figure('tafel_todos')
+plt.rc('lines', linewidth=2, markersize=4)
+plt.grid(True)
+plt.xlabel('log j (decade)')
+plt.ylabel('Overpotential (V)')
+
+#
 for input_file in sys.argv[1:]:
     process_file(input_file)
+
+# save Tafel plot to a file
+plt.figure('tafel_todos')
+plt.savefig('tafel_todos.png')
