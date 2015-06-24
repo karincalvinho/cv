@@ -85,7 +85,7 @@ def process_file(input_file, sample_id):
         x[best_i:best_j], y[best_i:best_j])
 
     if best_i == None or best_j == None:
-        print "%s,error" % input_file
+        print '%s,error' % input_file
         sys.exit()
 
     tafel_slope = 1000 * slope
@@ -131,7 +131,7 @@ def process_file(input_file, sample_id):
       r_value,
     )
 
-    print "%s,%.3f,%.3f,%.3f,%.3e,%.3f,%.3f" % data_summary
+    print '%s,%.3f,%.3f,%.3f,%.3e,%.3f,%.3f' % data_summary
 
 
 
@@ -168,25 +168,25 @@ def process_file(input_file, sample_id):
     line_y = []
     for val in x:
         line_y.append(slope * val + intercept)
-    plt.plot(x, line_y, '-', color="blue")
+    plt.plot(x, line_y, '-', color='blue')
 
     # highlight part of the line between best_i and best_j
     bestline_y = []
     for val in x[best_i:best_j]:
         bestline_y.append(slope * val + intercept)
-    plt.plot(x[best_i:best_j], bestline_y, '-', color="red")
+    plt.plot(x[best_i:best_j], bestline_y, '-', color='red')
 
     # plot actual data
-    plt.plot(x, y, '.', color="black")
+    plt.plot(x, y, '.', color='black')
 
     # save Tafel plot to a file
     plt.savefig(path + '/tafel-' + filename + '.png')
 
     # create multiple line tafel plot
     plt.figure('tafel_all')
-    plt.plot(x, y, '.', color="black")
+    plt.plot(x, y, '.', color='black')
     ax.plot(x, line_y, '-', label=sample_id)
-    #plt.plot(x[best_i:best_j], bestline_y, '-', color="gray")
+    #plt.plot(x[best_i:best_j], bestline_y, '-', color='#4D4D4D')
 
     ################################################################################
     # Generating polarization curve
@@ -208,7 +208,7 @@ def process_file(input_file, sample_id):
 
 # reading script's input from command-line
 if len(sys.argv) < 2:
-    print "Usage: %s <input file>:<sample_id>" % sys.argv[0]
+    print 'Usage: %s <input file>:<sample_id>' % sys.argv[0]
     sys.exit()
 
 # chart options
@@ -237,5 +237,5 @@ for argument in sys.argv[1:]:
 
 # save Tafel plot to a file
 plt.figure('tafel_all')
-plt.legend()
+plt.legend(loc='lower right')
 plt.savefig('tafel_all.png')
