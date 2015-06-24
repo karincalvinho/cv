@@ -9,7 +9,7 @@ import numpy
 # process input file
 def process_file(input_file):
     # extract filename and path from input_file
-    path, filename = os.path.split(input_file)
+    path, filename = os.path.split(os.path.abspath(input_file))
 
     # read input file
     data = numpy.genfromtxt(input_file, delimiter=',', skip_header=16)
