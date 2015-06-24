@@ -5,3 +5,11 @@ data/*
 cvserr.py
 
 ec_data.txt
+
+linear-s1.txt
+
+linear-sample.txt
+
+*.txt
+
+*.png
