@@ -4,29 +4,29 @@ find ./data/02-2015 -name "CV*2.txt" | while read x
 do
   path=$(dirname "${x}")
   filename=$(basename "${x}")
-  python cvs.py "$x"
+  python cvs_ch.py "$x"
 done
 find ./data/03-2015 -name "CV*2.txt" | while read x
 do
   path=$(dirname "${x}")
   filename=$(basename "${x}")
-  python cvs.py "$x"
+  python cvs_ch.py "$x"
 done
 find ./data/04-2015 -name "CV*2.txt" | while read x
 do
   path=$(dirname "${x}")
   filename=$(basename "${x}")
-  python cvs.py "$x"
+  python cvs_ch.py "$x"
 done
 find ./data/05-2015 -name "CV*2.txt" | while read x
 do
   path=$(dirname "${x}")
   filename=$(basename "${x}")
-  python cvs.py "$x"
+  python cvs_ch.py "$x"
 done
 find ./data/06-2015 -name "CV*2.txt" | while read x
 do
   path=$(dirname "${x}")
   filename=$(basename "${x}")
-  python cvs145.py "$x"
+  python cvs_ch_145.py "$x"
 done
