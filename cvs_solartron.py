@@ -12,13 +12,13 @@ def process_file(input_file, sample_id):
     path, filename = os.path.split(os.path.abspath(input_file))
 
     # read input file
-    data = numpy.genfromtxt(input_file, delimiter=',', skip_header=16)
+    data = numpy.genfromtxt(input_file, delimiter=',')
     data = numpy.vstack((data, data[0]))
     v = data[:,:1]
     current = data[:,1:2]
 
     # convert Potential vs Hg/Hg0 into Potential vs NHE
-    v_nhe = v + 0.140 + .0592*14
+    v_nhe = v + 0.190 + .0592*13
     data = numpy.append(data, v_nhe, 1)
 
     # find cycle endpoint
@@ -53,7 +53,7 @@ def process_file(input_file, sample_id):
 
     # build x/y vectors for linear regression (extracts first quadrant
     # from log10_current_density vs overpotential)
-    mask = numpy.logical_and(log10_current_density > -0.5, overpotential > 0.32)
+    mask = numpy.logical_and(log10_current_density > 0, overpotential > 0)
     x = log10_current_density[mask]
     y = overpotential[mask]
 
@@ -93,7 +93,7 @@ def process_file(input_file, sample_id):
     onset_potential = None
     for row in data:
         current_density_value = row[3]
-        if current_density_value < -1:
+        if current_density_value < 1:
             v_nhe_value = row[2]
             onset_potential = v_nhe_value
             break
@@ -198,10 +198,9 @@ def process_file(input_file, sample_id):
     plt.grid(False)
     plt.xlabel('V vs NHE (V)')
     plt.ylabel('Current density (mA/cm2)')
-    plt.gca().invert_yaxis()
 
     # actually plot the data
-    plt.plot(v_nhe[:701], current_density[:701])
+    plt.plot(v_nhe[:endpoint], current_density[:endpoint])
 
     # save plot to a file
     plt.savefig(path + '/pc-' + filename + '.png')
