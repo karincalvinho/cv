@@ -261,7 +261,12 @@ plt.ylabel('Overpotential (V)')
 
 # treat IV data
 for argument in args:
-    (input_file, sample_id) = argument.split(':')
+    file_and_label = argument.split(':')
+    input_file = file_and_label[0]
+    sample_id = input_file
+    if len(file_and_label) > 1:
+        sample_id = file_and_label[1]
+
     process_file(input_file, sample_id)
 
 # save Tafel plot to a file
