@@ -9,12 +9,19 @@ import yaml
 import getopt
 
 # process input file
+
 def process_file(input_file, sample_id):
     # extract filename and path from input_files
     path, filename = os.path.split(os.path.abspath(input_file))
 
+
+    if cfg['use_tab_as_delimiter'] == 'yes':
+        cfg['use_tab_as_delimiter']='\t'
+    else:
+        cfg['use_tab_as_delimiter']=','
+
     # read input file
-    input_data = numpy.genfromtxt(input_file, delimiter=',', skip_header=cfg['skip_header'])
+    input_data = numpy.genfromtxt(input_file, delimiter=cfg['use_tab_as_delimiter'], skip_header=cfg['skip_header'])
     input_data = numpy.vstack((input_data, input_data[0]))
     v = input_data[:,:1]
     current = input_data[:,1:2]
