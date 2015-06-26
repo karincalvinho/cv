@@ -147,8 +147,8 @@ def process_file(input_file, sample_id):
         'i (A)',
         'V vs NHE (V)',
         'j (mA/cm^2)',
-        'Overpotential (V)',
         'log j (decade)',
+        'Overpotential (V)',
     ]
     output_file = path + '/out-' + filename
     output_data = numpy.hstack((
@@ -156,8 +156,8 @@ def process_file(input_file, sample_id):
         forward_current,
         v_nhe,
         current_density,
-        overpotential,
         log10_current_density,
+        overpotential,
     ))
     numpy.savetxt(output_file, output_data, delimiter=',', header=','.join(column_names),
         comments='')
