@@ -60,7 +60,7 @@ def process_file(input_file, sample_id):
 
     # build x/y vectors for linear regression (extracts first quadrant
     # from log10_current_density vs overpotential)
-    mask = numpy.logical_and(log10_current_density > -0.5, overpotential > 0.32)
+    mask = numpy.logical_and(log10_current_density > -0.5, overpotential > 0.2)
     x = log10_current_density[mask]
     y = overpotential[mask]
 
