@@ -220,7 +220,7 @@ def process_file(input_file, sample_id):
     plt.savefig(path + '/pc-' + filename + '.png')
 
 def usage():
-    print 'Usage: %s <input file>:<sample_id>' % sys.argv[0]
+    print 'Usage: %s [-c <config.yaml>] <input file>[:<sample_id>]' % sys.argv[0]
     sys.exit()
 
 # reading script's input from command-line
