@@ -6,10 +6,7 @@ import os
 import sys
 import numpy
 import yaml
-
-# reads config file
-config_file = open('config.yaml', 'r')
-cfg = yaml.load(config_file)
+import getopt
 
 # process input file
 def process_file(input_file, sample_id):
@@ -222,10 +219,26 @@ def process_file(input_file, sample_id):
     # save plot to a file
     plt.savefig(path + '/pc-' + filename + '.png')
 
-# reading script's input from command-line
-if len(sys.argv) < 2:
+def usage():
     print 'Usage: %s <input file>:<sample_id>' % sys.argv[0]
     sys.exit()
+
+# reading script's input from command-line
+if len(sys.argv) < 2:
+    usage()
+
+config_filename = 'default.yaml'
+
+opts, args = getopt.getopt(sys.argv[1:], 'hc:')
+for opt, arg in opts:
+    if opt == '-h':
+        usage()
+    elif opt == '-c':
+        config_filename = arg
+
+# reads config file
+config_file = open(config_filename, 'r')
+cfg = yaml.load(config_file)
 
 # chart options
 plt.figure('tafel_all')
@@ -247,7 +260,7 @@ plt.xlabel('log j (decade)')
 plt.ylabel('Overpotential (V)')
 
 # treat IV data
-for argument in sys.argv[1:]:
+for argument in args:
     (input_file, sample_id) = argument.split(':')
     process_file(input_file, sample_id)
 
