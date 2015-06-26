@@ -12,14 +12,13 @@ def process_file(input_file, sample_id):
     path, filename = os.path.split(os.path.abspath(input_file))
 
     # read input file
-    data = numpy.genfromtxt(input_file, delimiter=',', skip_header=16)
-    data = numpy.vstack((data, data[0]))
-    v = data[:,:1]
-    current = data[:,1:2]
+    input_data = numpy.genfromtxt(input_file, delimiter=',', skip_header=16)
+    input_data = numpy.vstack((input_data, input_data[0]))
+    v = input_data[:,:1]
+    current = input_data[:,1:2]
 
     # convert Potential vs Hg/Hg0 into Potential vs NHE
     v_nhe = v + 0.140 + .0592*14
-    data = numpy.append(data, v_nhe, 1)
 
     # find cycle endpoint
     endpoint = None
@@ -35,21 +34,27 @@ def process_file(input_file, sample_id):
     # FIXME: take care of the case that there are multiple cycles in the data
 
     # trimming data, excluding rows after endpoint from output
-    data = data[:endpoint+1, :]
-
-    # calculate current density
+    v = v[:endpoint+1, :]
+    v_nhe = v_nhe[:endpoint+1, :]
     forward_current = current[:endpoint+1]
     reverse_current = numpy.flipud(current[endpoint:])
+    del current
+
+    # find out which vector is the shortest one and trim vectors to that size
+    length = min(len(v[:,0]), len(v_nhe[:,0]), len(forward_current[:,0]), len(reverse_current[:,0]))
+    v = v[:length]
+    v_nhe = v_nhe[:length]
+    forward_current = forward_current[:length]
+    reverse_current = reverse_current[:length]
+
+    # calculate current density
     current_density = (forward_current + reverse_current) * 1000 / (2 * .196)
-    data = numpy.append(data, current_density, 1)
 
     # calculate logarithm of current density
     log10_current_density = numpy.log10(2 * numpy.fabs(current_density))
-    data = numpy.append(data, log10_current_density, 1)
 
     # calculate overpotential
-    overpotential = v_nhe[:endpoint+1] - 1.23
-    data = numpy.append(data, overpotential, 1)
+    overpotential = v_nhe - 1.23
 
     # build x/y vectors for linear regression (extracts first quadrant
     # from log10_current_density vs overpotential)
@@ -91,10 +96,8 @@ def process_file(input_file, sample_id):
     tafel_slope = 1000 * slope
 
     onset_potential = None
-    for row in data:
-        current_density_value = row[3]
+    for (current_density_value, v_nhe_value) in zip(current_density[:,0], v_nhe[:,0]):
         if current_density_value < -1:
-            v_nhe_value = row[2]
             onset_potential = v_nhe_value
             break
 
@@ -148,7 +151,15 @@ def process_file(input_file, sample_id):
         'log j (decade)',
     ]
     output_file = path + '/out-' + filename
-    numpy.savetxt(output_file, data, delimiter=',', header=','.join(column_names),
+    output_data = numpy.hstack((
+        v,
+        forward_current,
+        v_nhe,
+        current_density,
+        overpotential,
+        log10_current_density,
+    ))
+    numpy.savetxt(output_file, output_data, delimiter=',', header=','.join(column_names),
         comments='')
 
 
