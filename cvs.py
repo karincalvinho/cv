@@ -93,13 +93,14 @@ def process_file(input_file, sample_id):
                 best_i = i
                 best_j = j
 
-    # prints the best linear regression
+    if best_i == None or best_j == None:
+        print '%s,error: tafel plot does not span more than 1 decade' % input_file
+        sys.exit()
+
+    # prints the best linear regressions
     slope, intercept, r_value, p_value, std_err = stats.linregress(
         x[best_i:best_j], y[best_i:best_j])
 
-    if best_i == None or best_j == None:
-        print '%s,error' % input_file
-        sys.exit()
 
     tafel_slope = 1000 * slope
 
