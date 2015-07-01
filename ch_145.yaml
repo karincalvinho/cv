@@ -1,6 +1,6 @@
 ref: 0.145 # V vs NHE
 onset: 1 # mA/cm^2
 pH: 14
-use_tab_as_delimiter: yes
+use_tab_as_delimiter: no
 
 skip_header: 16
